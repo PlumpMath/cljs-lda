@@ -21,7 +21,8 @@
 (defn index-page []
   (html5
     [:head
-     [:title "LDA for ClojureScript"]]
+     [:title "LDA for ClojureScript"]
+     (include-js "/js/d3.v3.js")]
     [:body
       [:h1 "LDA for ClojureScript"]
      [:div {:id "lda"}
