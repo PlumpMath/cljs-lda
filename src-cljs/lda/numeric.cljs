@@ -15,8 +15,6 @@
 
 (defn- pow [b e] (.pow js/Math b e))
 
-(def rand (.-random js/Math))
-
 (defn rand-seq
   ([] (rand-seq 1))
   ([k]

@@ -1,5 +1,5 @@
 (ns lda.probabilities
-  (:use [lda.numeric :only [sign sqrt pow log exp sigmoid erf fac inner rand rand-seq]]))
+  (:use [lda.numeric :only [sign sqrt pow log exp gamma sigmoid erf fac inner rand rand-seq]]))
 
 (defn- log-likelihood
   "Now we look at this function from a different perspective by
@@ -50,7 +50,7 @@
 
 
 (defn poisson-pmf [lambda k]
-  (if (< x 0) 0
+  (if (< k 0) 0
       (* (/ (pow lambda k)
             (fac k))
          (exp (- lambda)))))
@@ -65,6 +65,15 @@
        (reduce * (map pow theta x)))))
 
 #_(multinomial-pmf [0.2 0.3 0.5] [1 2 3])
+
+(defn dirichlet-pdf [smpl alpha]
+  (* (/ (gamma (reduce + alpha))
+        (reduce * (map gamma alpha)))
+     (reduce * (map #(pow %1 (dec %2)) smpl alpha))))
+
+
+#_(dirichlet-pdf [0.3 0.3 0.4] (repeat 3 2.3))
+#_(dirichlet-pdf [0.5 0.4 0.1] [5 4 1])
 
 
 (def unit-exp (comp exp -))

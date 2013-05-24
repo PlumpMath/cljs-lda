@@ -1,7 +1,7 @@
 (ns lda.core
   (:use [lda.repl :only [connect]]
         [lda.numeric :only [pow gamma]]
-        [lda.probabilities :only [poisson dirichlet multinomial]]))
+        [lda.probabilities :only [poisson-pmf dirichlet-pdf multinomial-pmf]]))
 
 ; fire up server-side javascript repl
 #_(do (ns cljs-lda.clojure.start)
@@ -31,25 +31,12 @@
 
 (defn corpus [& docs] docs)
 
-(defn dirichlet-pdf [smpl alpha]
-  (* (/ (gamma (reduce + alpha))
-        (reduce * (map gamma alpha)))
-     (reduce * (map #(pow %1 (dec %2)) smpl alpha))))
-
-; das kann nicht sein oder? wo gibts ne vergleichsimplementierung? hast du die in R da? nö, müsst ich ma schauen, ok ich schau auch mal
-; besser :-) ich dummkopf hab bei repeat ne 5 hingeschrieben, sry
-; fucking emacs bork, kannst bei dir auch deinen so einrichten wie du möchtest, muss das hier mal fixen :-/
-
-
-
-#_(dirichlet-pdf [0.3 0.3 0.4] (repeat 3 2.3))
-#_(dirichlet-pdf [0.5 0.4 0.1] [5 4 1])
 
 ; k is fixed, beta is k x V - matrix
 ; beta[i,j] = p( w^i | z^j )
 (defn lda-generative-process [xchi alpha k beta doc]
-  (let [N (poisson-pdf xchi) ; poisson not important, other possible
-        theta (dirichlet-pmf alpha k)]
+  (let [N (poisson-pmf xchi) ; poisson not important, other possible
+        theta (dirichlet-pdf alpha k)]
     (map #(let [topic (multinomial-pmf theta)
                 word (multinomial-pmf topic beta)]
             word) doc)))
