@@ -1,7 +1,7 @@
 (ns lda.core
   (:use [lda.repl :only [connect]]
         [lda.numeric :only [pow gamma]]
-        [lda.probabilities :only [poisson-pmf dirichlet-pdf multinomial-pmf]]))
+        [lda.probabilities :only [normal-cdf poisson-pmf dirichlet-pdf multinomial-pmf]]))
 
 ; fire up server-side javascript repl
 #_(do (ns cljs-lda.clojure.start)
@@ -37,17 +37,9 @@
 (defn lda-generative-process [xchi alpha k beta doc]
   (let [N (poisson-pmf xchi) ; poisson not important, other possible
         theta (dirichlet-pdf alpha k)]
-    (map #(let [topic (multinomial-pmf theta)
+    (map #(let [topic (multinomial-pmf theta (rand))
                 word (multinomial-pmf topic beta)]
             word) doc)))
-
-
-
-
-
-
-
-
 
 
 

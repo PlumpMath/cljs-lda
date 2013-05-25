@@ -3,7 +3,7 @@
     [hiccup
       [page :refer [html5]]
       [element :refer [javascript-tag]]
-      [page :refer [include-js]]]))
+      [page :refer [include-js include-css]]]))
 
 
 (defn style [& info]
@@ -22,7 +22,8 @@
   (html5
     [:head
      [:title "LDA for ClojureScript"]
-     (include-js "/js/d3.v3.js")]
+     (include-js "/js/d3.v3.js")
+     (include-css "/css/line-plot.css")]
     [:body
       [:h1 "LDA for ClojureScript"]
      [:div {:id "lda"}
