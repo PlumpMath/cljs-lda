@@ -29,6 +29,9 @@
 
 (defn- get-context [cvs] (.getContext cvs "2d"))
 
+(def *fill-color* "black")
+(def *stroke-color* "rgba(0,0,0,0.3)")
+
 (defn- clear! [cvs]
   (.clearRect (get-context cvs) 0 0 (.-clientWidth cvs) (.-clientHeight cvs)))
 
@@ -134,42 +137,51 @@
 
   (draw-metric-y! c x-offset y-offset 10 (create-range 0 (- y-offset y-end) 10)))
 
+; autoscales to canvas size
+(defn plot! [cvs xy-maps x-start x-end y-start y-end]
+     (do (clear! cvs)
+         (let [c (get-context cvs)
+               width (.-clientWidth canvas)
+               height (.-clientHeight canvas)
+               x-scale-width 75
+               y-scale-width 30]
+           (doall (map (fn [{:keys [x-dat y-dat type fill stroke]}]
+                         (set! (.-fillStyle c) (or fill *fill-color*))
+                         (set! (.-strokeStyle c) (or stroke *stroke-color*))
+                         ((case type
+                            :box box-plot!
+                            :cont cont-plot!
+                            :dot dot-plot!) c x-scale-width (- height y-scale-width) width 0 x-dat y-dat)
+                         ) xy-maps))
 
-; tune to your plot requirements, autoscales to canvas size
-#_(do (clear! canvas)
-      (let [c (get-context canvas)
-            width (.-clientWidth canvas)
-            height (.-clientHeight canvas)
-            x-metric-width 75
-            y-metric-width 30
-            x-start -10
-            x-end 10
-            y-start -10
-            y-end 10
-            stepping 100
-            rng (create-range x-start x-end stepping)]
-        (set! (.-fillStyle c) "rgba(0,0,255,0.5)")
-        (box-plot! c x-metric-width (- height y-metric-width) width 0
-                    (normalize rng x-start x-end)
-                    (normalize (map #(/ 1 %) rng) y-start y-end))
+           (set! (.-strokeStyle c) *stroke-color*)
+           (set! (.-fillStyle c) *fill-color*)
+           (set! (.-font c) "normal 16px sans-serif") ; changing needs adjustments in scale widths
+           (create-scale-x! c x-scale-width (- height y-scale-width) width x-start (avg x-start x-end) x-end)
+           (create-scale-y! c x-scale-width (- height y-scale-width) 0 y-start (avg y-start y-end) y-end))))
 
-        (set! (.-fillStyle c) "rgba(0,255,0,0.5)")
-        (cont-plot! c x-metric-width (- height y-metric-width) width 0
-                    (normalize rng x-start x-end)
-                    (normalize (map sin rng) y-start y-end))
+(defn create-fn-plot [plot f x-start x-end y-start y-end stepping]
+  (let [x-rng (create-range x-start x-end stepping)
+        x-dat (normalize x-rng)
+        y-dat (normalize (map f x-rng) y-start y-end)]
+    (assoc plot :x-dat x-dat :y-dat y-dat)))
 
-        (set! (.-fillStyle c) "rgba(255,0,0,0.5)")
-        (dot-plot! c x-metric-width (- height y-metric-width) width 0
-                    (normalize rng x-start x-end)
-                    (normalize (map exp rng) y-start y-end))
 
-        (set! (.-fillStyle c) "rgba(150,50,200,0.5)")
-        (dot-plot! c x-metric-width (- height y-metric-width) width 0
-                   (normalize rng x-start x-end)
-                   (normalize (map #(+ 5 (* (rand) %)) rng) y-start y-end))
+#_(plot! canvas [(create-fn-plot {:type :box
+                                  :stroke "rgba(255,0,0,0.5)"
+                                  :fill "rgba(255,0,0,0.5)"} sin -10 10 -10 10 20)] -10 10 -10 10)
 
-        (set! (.-strokeStyle c) "black")
-        (set! (.-fillStyle c) "black")
-        (set! (.-font c) "normal 16px sans-serif")
-        (create-scale-x! c x-metric-width (- height y-metric-width) width x-start (avg x-start x-end) x-end)
-        (create-scale-y! c x-metric-width (- height y-metric-width) 0 y-start (avg y-start y-end) y-end)))
+(defn plot-fns!
+  ([cvs fns x-start x-end y-start y-end]
+     (plot-fns! cvs fns x-start x-end y-start y-end 100))
+  ([cvs fns x-start x-end y-start y-end stepping]
+     (plot! cvs (map (fn [f c] (create-fn-plot {:type :cont
+                                               :stroke c :fill c} f x-start x-end y-start y-end stepping))
+                     fns
+                     ["rgba(255,0,0,0.5)"
+                      "rgba(0,255,0,0.5)"
+                      "rgba(0,0,255,0.5)"
+                      "rgba(255,255,0,0.5)"
+                      "rgba(0,255,255,0.5)"]) x-start x-end y-start y-end)))
+
+#_(plot-fns! canvas [cos sin] (- pi) pi (- pi) pi)

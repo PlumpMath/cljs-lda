@@ -11,6 +11,8 @@
 
 (defn sin [x] (.sin js/Math x))
 
+(defn cos [x] (.cos js/Math x))
+
 (defn abs [x] (.abs js/Math x))
 
 (defn pow [b e] (.pow js/Math b e))
