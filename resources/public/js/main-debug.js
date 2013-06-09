@@ -21431,13 +21431,6 @@ goog.provide("lda.canvas_plot");
 goog.require("cljs.core");
 goog.require("lda.numeric");
 goog.require("lda.numeric");
-lda.canvas_plot.canvas = document.getElementById("plot");
-lda.canvas_plot.get_context = function get_context(cvs) {
-  return cvs.getContext("2d")
-};
-lda.canvas_plot.clear_BANG_ = function clear_BANG_(cvs) {
-  return lda.canvas_plot.get_context.call(null, cvs).clearRect(0, 0, cvs.clientWidth, cvs.clientHeight)
-};
 lda.canvas_plot.normalize = function() {
   var normalize = null;
   var normalize__1 = function(s) {
@@ -21445,8 +21438,8 @@ lda.canvas_plot.normalize = function() {
   };
   var normalize__3 = function(s, min, max) {
     var dist = lda.numeric.abs.call(null, max - min);
-    return cljs.core.map.call(null, function(p1__2947_SHARP_) {
-      return(p1__2947_SHARP_ - min) / dist
+    return cljs.core.map.call(null, function(p1__2944_SHARP_) {
+      return(p1__2944_SHARP_ - min) / dist
     }, s)
   };
   normalize = function(s, min, max) {
@@ -21462,6 +21455,45 @@ lda.canvas_plot.normalize = function() {
   normalize.cljs$lang$arity$3 = normalize__3;
   return normalize
 }();
+lda.canvas_plot.create_range = function create_range(start, end, steps) {
+  var dist = end - start;
+  var step = dist / steps;
+  return cljs.core.map.call(null, function(p1__2945_SHARP_) {
+    return start + p1__2945_SHARP_ * step
+  }, cljs.core.range.call(null, 0, steps + 1))
+};
+lda.canvas_plot.scientific_print = function scientific_print(fl, prec) {
+  var scale = cljs.core._EQ_.call(null, fl, 0) ? 0 : lda.numeric.round.call(null, lda.numeric.log.call(null, lda.numeric.abs.call(null, fl)) / lda.numeric.log.call(null, 10));
+  var mant = function(scale) {
+    return function(p1__2946_SHARP_) {
+      return cljs.core.format.call(null, [cljs.core.str("%."), cljs.core.str(prec), cljs.core.str("f")].join(""), p1__2946_SHARP_ / lda.numeric.pow.call(null, 10, scale))
+    }
+  }(scale);
+  if(cljs.core._EQ_.call(null, scale, 0)) {
+    return mant.call(null, fl)
+  }else {
+    if(cljs.core._EQ_.call(null, scale, 1)) {
+      return mant.call(null, 10 * fl)
+    }else {
+      if(cljs.core._EQ_.call(null, scale, 2)) {
+        return mant.call(null, 100 * fl)
+      }else {
+        if("\ufdd0:else") {
+          return[cljs.core.str(mant.call(null, fl)), cljs.core.str("E"), cljs.core.str(scale > 0 ? [cljs.core.str("+"), cljs.core.str(scale)].join("") : scale)].join("")
+        }else {
+          return null
+        }
+      }
+    }
+  }
+};
+lda.canvas_plot.canvas = document.getElementById("plot");
+lda.canvas_plot.get_context = function get_context(cvs) {
+  return cvs.getContext("2d")
+};
+lda.canvas_plot.clear_BANG_ = function clear_BANG_(cvs) {
+  return lda.canvas_plot.get_context.call(null, cvs).clearRect(0, 0, cvs.clientWidth, cvs.clientHeight)
+};
 lda.canvas_plot.box_plot_BANG_ = function box_plot_BANG_(c, x_start, y_start, x_end, y_end, x_dat, y_dat) {
   var width = x_end - x_start;
   var height = y_start - y_end;
@@ -21496,43 +21528,6 @@ lda.canvas_plot.cont_plot_BANG_ = function cont_plot_BANG_(c, x_start, y_start, 
   c.stroke();
   return c.fill()
 };
-lda.canvas_plot.create_range = function create_range(start, end, steps) {
-  var dist = end - start;
-  var step = dist / steps;
-  return cljs.core.map.call(null, function(p1__2948_SHARP_) {
-    return start + p1__2948_SHARP_ * step
-  }, cljs.core.range.call(null, 0, steps + 1))
-};
-lda.canvas_plot.scientific_float = function scientific_float(fl, prec) {
-  var scale = cljs.core._EQ_.call(null, fl, 0) ? 0 : lda.numeric.round.call(null, lda.numeric.log.call(null, lda.numeric.abs.call(null, fl)) / lda.numeric.log.call(null, 10));
-  var mant = function(scale) {
-    return function(p1__2949_SHARP_) {
-      return cljs.core.format.call(null, [cljs.core.str("%."), cljs.core.str(prec), cljs.core.str("f")].join(""), p1__2949_SHARP_ / lda.numeric.pow.call(null, 10, scale))
-    }
-  }(scale);
-  if(cljs.core._EQ_.call(null, scale, 0)) {
-    return mant.call(null, fl)
-  }else {
-    if(cljs.core._EQ_.call(null, scale, 1)) {
-      return mant.call(null, 10 * fl)
-    }else {
-      if(cljs.core._EQ_.call(null, scale, 2)) {
-        return mant.call(null, 100 * fl)
-      }else {
-        if("\ufdd0:else") {
-          return[cljs.core.str(mant.call(null, fl)), cljs.core.str("E"), cljs.core.str(scale > 0 ? [cljs.core.str("+"), cljs.core.str(scale)].join("") : scale)].join("")
-        }else {
-          return null
-        }
-      }
-    }
-  }
-};
-lda.canvas_plot.wish_plot = cljs.core.ObjMap.fromObject(["\ufdd0:x-range", "\ufdd0:fns"], {"\ufdd0:x-range":lda.canvas_plot.create_range.call(null, 0, 5, 100), "\ufdd0:fns":cljs.core.PersistentVector.fromArray([cljs.core.ObjMap.fromObject(["\ufdd0:fn", "\ufdd0:color", "\ufdd0:label"], {"\ufdd0:fn":lda.numeric.sin, "\ufdd0:color":"rgba(0,0,255,0.5)", "\ufdd0:label":"sin"}), cljs.core.ObjMap.fromObject(["\ufdd0:fn", "\ufdd0:color", "\ufdd0:label"], {"\ufdd0:fn":lda.numeric.exp, "\ufdd0:color":"rgba(255,0,0,0.5)", 
-"\ufdd0:label":"exp"})], true)});
-lda.canvas_plot.sampled_plot = cljs.core.ObjMap.fromObject(["\ufdd0:x-range", "\ufdd0:fns", "\ufdd0:x-frame", "\ufdd0:y-frame"], {"\ufdd0:x-range":lda.canvas_plot.create_range.call(null, 0, 5, 100), "\ufdd0:fns":cljs.core.PersistentVector.fromArray([cljs.core.ObjMap.fromObject(["\ufdd0:fn", "\ufdd0:color", "\ufdd0:label", "\ufdd0:normalized-data", "\ufdd0:min", "\ufdd0:max", "\ufdd0:dist"], {"\ufdd0:fn":lda.numeric.sin, "\ufdd0:color":"rgba(0,0,255,0.5)", "\ufdd0:label":"sin", "\ufdd0:normalized-data":cljs.core.ObjMap.EMPTY, 
-"\ufdd0:min":-1, "\ufdd0:max":1, "\ufdd0:dist":2}), cljs.core.ObjMap.fromObject(["\ufdd0:fn", "\ufdd0:color", "\ufdd0:label", "\ufdd0:normalized-data", "\ufdd0:min", "\ufdd0:max", "\ufdd0:dist"], {"\ufdd0:fn":lda.numeric.exp, "\ufdd0:color":"rgba(255,0,0,0.5)", "\ufdd0:label":"exp", "\ufdd0:normalized-data":cljs.core.ObjMap.EMPTY, "\ufdd0:min":0, "\ufdd0:max":149, "\ufdd0:dist":149})], true), "\ufdd0:x-frame":cljs.core.PersistentArrayMap.fromArrays([0.18, 0.36, 0.54, 0.72, 0.9, 1], [0, 1, 2, 3, 4, 
-5]), "\ufdd0:y-frame":cljs.core.ObjMap.EMPTY});
 lda.canvas_plot.draw_line_BANG_ = function draw_line_BANG_(c, x_start, y_start, x_end, y_end) {
   c.beginPath();
   c.moveTo(x_start, y_start);
@@ -21545,30 +21540,34 @@ lda.canvas_plot.draw_text_BANG_ = function draw_text_BANG_(c, x_offset, y_offset
 };
 lda.canvas_plot.draw_metric_x_BANG_ = function draw_metric_x_BANG_(c, x_offset, y_offset, len, rng) {
   c.beginPath();
-  cljs.core.doall.call(null, cljs.core.map.call(null, function(p1__2951_SHARP_) {
-    return lda.canvas_plot.draw_line_BANG_.call(null, c, x_offset + p1__2951_SHARP_, y_offset + len / 2, x_offset + p1__2951_SHARP_, y_offset - len / 2)
+  cljs.core.doall.call(null, cljs.core.map.call(null, function(p1__2947_SHARP_) {
+    return lda.canvas_plot.draw_line_BANG_.call(null, c, x_offset + p1__2947_SHARP_, y_offset + len / 2, x_offset + p1__2947_SHARP_, y_offset - len / 2)
   }, rng));
   return c.stroke()
 };
 lda.canvas_plot.draw_metric_y_BANG_ = function draw_metric_y_BANG_(c, x_offset, y_offset, len, rng) {
   c.beginPath();
-  cljs.core.doall.call(null, cljs.core.map.call(null, function(p1__2952_SHARP_) {
-    return lda.canvas_plot.draw_line_BANG_.call(null, c, x_offset - len / 2, y_offset - p1__2952_SHARP_, x_offset + len / 2, y_offset - p1__2952_SHARP_)
+  cljs.core.doall.call(null, cljs.core.map.call(null, function(p1__2948_SHARP_) {
+    return lda.canvas_plot.draw_line_BANG_.call(null, c, x_offset - len / 2, y_offset - p1__2948_SHARP_, x_offset + len / 2, y_offset - p1__2948_SHARP_)
   }, rng));
   return c.stroke()
 };
-lda.canvas_plot.create_scale_x_BANG_ = function create_scale_x_BANG_(c, x_offset, y_offset, x_end, start, end) {
+lda.canvas_plot.create_scale_x_BANG_ = function create_scale_x_BANG_(c, x_offset, y_offset, x_end, start, middle, end) {
   lda.canvas_plot.draw_line_BANG_.call(null, c, x_offset, y_offset, x_end, y_offset);
-  lda.canvas_plot.draw_text_BANG_.call(null, c, x_offset, y_offset + 10, lda.canvas_plot.scientific_float.call(null, start, 2));
-  lda.canvas_plot.draw_text_BANG_.call(null, c, lda.numeric.avg.call(null, x_offset, x_end), y_offset + 10, lda.canvas_plot.scientific_float.call(null, lda.numeric.avg.call(null, start, end), 2));
-  lda.canvas_plot.draw_text_BANG_.call(null, c, x_end - 70, y_offset + 10, lda.canvas_plot.scientific_float.call(null, end, 2));
+  c.textAlign = "left";
+  lda.canvas_plot.draw_text_BANG_.call(null, c, x_offset, y_offset + 10, lda.canvas_plot.scientific_print.call(null, start, 2));
+  c.textAlign = "center";
+  lda.canvas_plot.draw_text_BANG_.call(null, c, lda.numeric.avg.call(null, x_offset, x_end), y_offset + 10, lda.canvas_plot.scientific_print.call(null, middle, 2));
+  c.textAlign = "right";
+  lda.canvas_plot.draw_text_BANG_.call(null, c, x_end, y_offset + 10, lda.canvas_plot.scientific_print.call(null, end, 2));
   return lda.canvas_plot.draw_metric_x_BANG_.call(null, c, x_offset, y_offset, 10, lda.canvas_plot.create_range.call(null, 0, x_end - x_offset, 10))
 };
-lda.canvas_plot.create_scale_y_BANG_ = function create_scale_y_BANG_(c, x_offset, y_offset, y_end, start, end) {
+lda.canvas_plot.create_scale_y_BANG_ = function create_scale_y_BANG_(c, x_offset, y_offset, y_end, start, middle, end) {
   lda.canvas_plot.draw_line_BANG_.call(null, c, x_offset, y_offset, x_offset, y_end);
-  lda.canvas_plot.draw_text_BANG_.call(null, c, 0, y_offset - 15, lda.canvas_plot.scientific_float.call(null, start, 2));
-  lda.canvas_plot.draw_text_BANG_.call(null, c, 0, lda.numeric.avg.call(null, 0, y_offset), lda.canvas_plot.scientific_float.call(null, lda.numeric.avg.call(null, start, end), 2));
-  lda.canvas_plot.draw_text_BANG_.call(null, c, 0, 0, lda.canvas_plot.scientific_float.call(null, end, 2));
+  c.textAlign = "left";
+  lda.canvas_plot.draw_text_BANG_.call(null, c, 0, y_offset - 15, lda.canvas_plot.scientific_print.call(null, start, 2));
+  lda.canvas_plot.draw_text_BANG_.call(null, c, 0, lda.numeric.avg.call(null, 0, y_offset - 15), lda.canvas_plot.scientific_print.call(null, middle, 2));
+  lda.canvas_plot.draw_text_BANG_.call(null, c, 0, 0, lda.canvas_plot.scientific_print.call(null, end, 2));
   return lda.canvas_plot.draw_metric_y_BANG_.call(null, c, x_offset, y_offset, 10, lda.canvas_plot.create_range.call(null, 0, y_offset - y_end, 10))
 };
 goog.provide("goog.disposable.IDisposable");
