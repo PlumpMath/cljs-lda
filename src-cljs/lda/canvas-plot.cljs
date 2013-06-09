@@ -14,7 +14,7 @@
     (map #(+ start (* % step)) (range 0 (inc steps)))))
 
 
-(defn scientific-print [fl prec]
+(defn scientific-print [fl prec] ; prec >= 2
   (let [scale (if (= fl 0) 0 (round (/ (log (abs fl)) (log 10))))
         mant #(format (str "%." prec "f") (/ % (pow 10 scale)))]
     (cond (= scale 0) (mant fl)
@@ -92,7 +92,7 @@
     (.lineTo c x-end y-end)
     (.stroke c))
 
-(defn draw-text! [c x-offset y-offset text ]
+(defn draw-text! [c x-offset y-offset text]
   (set! (.-textBaseline c) "top")
   (.fillText c text x-offset y-offset))
 
@@ -135,18 +135,19 @@
   (draw-metric-y! c x-offset y-offset 10 (create-range 0 (- y-offset y-end) 10)))
 
 
-
+; tune to your plot requirements, autoscales to canvas size
 #_(do (clear! canvas)
       (let [c (get-context canvas)
             width (.-clientWidth canvas)
             height (.-clientHeight canvas)
             x-metric-width 75
             y-metric-width 30
-            x-start -1000
-            x-end 1000
-            y-start -1000
-            y-end 1000
-            rng (create-range x-start x-end 100)]
+            x-start -10
+            x-end 10
+            y-start -10
+            y-end 10
+            stepping 100
+            rng (create-range x-start x-end stepping)]
         (set! (.-fillStyle c) "rgba(0,0,255,0.5)")
         (box-plot! c x-metric-width (- height y-metric-width) width 0
                     (normalize rng x-start x-end)
