@@ -40,7 +40,7 @@
 (defn normal-cdf [x mean sd]
   (let [z (/ (- x mean)
              (sqrt (* 2 sd sd)))]
-    (/ (+ 1 (* (sign z) (erf z)))
+    (/ (+ 1 (erf z))
        2)))
 
 #_(normal-cdf 1.4241 30 25)

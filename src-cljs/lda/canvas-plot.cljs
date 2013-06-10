@@ -1,5 +1,7 @@
 (ns lda.canvas-plot
-  (:use [lda.numeric :only [sin pi abs exp log erf pow round avg gamma digamma]]))
+  (:use [lda.numeric :only [sin pi abs exp log erf pow round avg gamma digamma sigmoid]
+         lda.probabilities :only [normal-cdf]]))
+
 
 ; TODO move to general namespace
 (defn normalize
@@ -23,14 +25,14 @@
           :else (str (mant fl) "E" (if (> scale 0) (str "+" scale) scale)))))
 
 
-; plotting on canvas
+; plotting (on canvas)
 
 (def canvas (.getElementById js/document "plot"))
 
 (defn- get-context [cvs] (.getContext cvs "2d"))
 
 (def *fill-color* "black")
-(def *stroke-color* "rgba(0,0,0,0.3)")
+(def *stroke-color* "rgba(0,0,0,1)")
 
 (defn- clear! [cvs]
   (.clearRect (get-context cvs) 0 0 (.-clientWidth cvs) (.-clientHeight cvs)))
@@ -77,16 +79,16 @@
   (let [width (- x-end x-start)
         height (- y-start y-end) ; 0 is top
         ]
-    (.beginPath c)
     (.moveTo c x-start y-start)
+    (.beginPath c)
     (doall (map
             (fn [x y] (.lineTo c (+ x-start (* x width)) (- y-start (* height y))))
             x-dat
             y-dat))
+    (.stroke c)
     ; close area on the ground
     (.lineTo c (+ x-start width) y-start)
     (.lineTo c x-start y-start)
-    (.stroke c)
     (.fill c)))
 
 (defn draw-line! [c x-start y-start x-end y-end]
@@ -160,16 +162,17 @@
            (create-scale-x! c x-scale-width (- height y-scale-width) width x-start (avg x-start x-end) x-end)
            (create-scale-y! c x-scale-width (- height y-scale-width) 0 y-start (avg y-start y-end) y-end))))
 
+
 (defn create-fn-plot [plot f x-start x-end y-start y-end stepping]
   (let [x-rng (create-range x-start x-end stepping)
-        x-dat (normalize x-rng)
+        x-dat (normalize x-rng x-start x-end)
         y-dat (normalize (map f x-rng) y-start y-end)]
     (assoc plot :x-dat x-dat :y-dat y-dat)))
 
 
-#_(plot! canvas [(create-fn-plot {:type :box
+#_(plot! canvas [(create-fn-plot {:type :cont
                                   :stroke "rgba(255,0,0,0.5)"
-                                  :fill "rgba(255,0,0,0.5)"} sin -10 10 -10 10 20)] -10 10 -10 10)
+                                  :fill "rgba(255,0,0,0.0)"} sin -10 10 -10 10 20)] -10 10 -10 10)
 
 (defn plot-fns!
   ([cvs fns x-start x-end y-start y-end]
@@ -185,3 +188,37 @@
                       "rgba(0,255,255,0.5)"]) x-start x-end y-start y-end)))
 
 #_(plot-fns! canvas [cos sin] (- pi) pi (- pi) pi)
+
+#_(plot-fns! canvas [#_(+ (sigmoid %) 0) #(normalize (exp %)) #_(normal-cdf % 0 1)] 0 1 0 1)
+
+#_(plot-fns! canvas [#(lda.probabilities/normal-cdf % 0 1)] -1 1 -1 1)
+
+; plot phis, still parameters unknown
+#_(let [start (- pi)
+        end pi
+        rng (create-range start end 100)
+        nrng (normalize rng start end)]
+    (plot! canvas [{:x-dat nrng
+                    :y-dat (normalize (map exp rng))
+                    :type :cont
+                    :stroke "rgba(255,100,0,1)"
+                    :fill "rgba(0,0,0,0.0)"}
+                   {:x-dat nrng
+                    :y-dat (normalize (map sigmoid rng))
+                    :type :cont
+                    :stroke "rgba(0,255,0,1)"
+                    :fill "rgba(0,0,0,0.0)"
+                    }
+                   {:x-dat nrng
+                    :y-dat (normalize (map #(lda.probabilities/normal-cdf % 0 1) rng))
+                    :type :cont
+                    :stroke "rgba(0,0,255,1)"
+                    :fill "rgba(0,0,0,0.0)"
+                    }
+                 {:x-dat nrng ; TODO faulty
+                    :y-dat (normalize (map #(exp %) rng))
+                    :type :cont
+                    :stroke "rgba(255,0,255,1)"
+                    :fill "rgba(0,0,0,0.0)"
+                    }
+                 ] 0 1 0 1))
