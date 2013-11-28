@@ -1,0 +1,23 @@
+{
+  "name": "Golem XIII",
+  "version": "0.0.1",
+  "description": "Hooks a ClojureScript browser framework into Chromium.",
+  "icons": { "128": "icon.png" },
+  "background": { "scripts": ["main-debug.js"] },
+  "content_scripts": [
+    { "matches": ["http://*/*"], "js": ["main-debug.js"] }
+  ],
+  "permissions": [
+    "tabs",
+//    "https://maps.google.com/*",
+//    "https://maps.googleapis.com/*"
+    "http://localhost:9010/*"
+  ],
+//  "page_action": {
+//      "default_name": "Display Map",
+//      "default_icon": "marker.png",
+//      "default_popup": "popup.html"
+//  },
+  "manifest_version": 2,
+  "content_security_policy": "default-src 'none'; style-src 'self'; script-src 'self' http://localhost; object-src 'self'; connect-src http://localhost; " // img-src https://maps.google.com"
+}
